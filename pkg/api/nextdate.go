@@ -7,8 +7,15 @@ import (
 	"time"
 )
 
-const DateFormat = "20060102"
+func normalize(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
 
+func isLeapYear(year int) bool {
+	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
+}
+
+// NextDate вычисляет следующую дату выполнения задачи
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	if repeat == "" {
 		return "", fmt.Errorf("пустое правило повторения")
@@ -19,9 +26,8 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		return "", err
 	}
 
-	// Нормализуем время
-	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	now = normalize(now)
+	date = normalize(date)
 
 	parts := strings.Split(repeat, " ")
 	rule := parts[0]
@@ -36,9 +42,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			return "", fmt.Errorf("некорректный интервал для d: от 1 до 400")
 		}
 		next := date
-		// Всегда добавляем интервал
 		next = next.AddDate(0, 0, days)
-		// Повторяем, пока не станет больше now
 		for next.Before(now) || next.Equal(now) {
 			next = next.AddDate(0, 0, days)
 		}
@@ -49,23 +53,16 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			return "", fmt.Errorf("неправильный формат правила y")
 		}
 		next := date
-		// Всегда добавляем год
 		next = next.AddDate(1, 0, 0)
-		// Повторяем, пока не станет больше now
 		for next.Before(now) || next.Equal(now) {
 			next = next.AddDate(1, 0, 0)
 		}
-		// Корректировка для 29 февраля
 		if next.Month() == 2 && next.Day() == 29 && !isLeapYear(next.Year()) {
-			next = time.Date(next.Year(), 3, 1, 0, 0, 0, 0, time.UTC)
+			next = time.Date(next.Year(), 3, 1, 0, 0, 0, 0, next.Location())
 		}
 		return next.Format(DateFormat), nil
 
 	default:
 		return "", fmt.Errorf("неподдерживаемый формат правила: %s", rule)
 	}
-}
-
-func isLeapYear(year int) bool {
-	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }
