@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Vasilinateg/go-final-todo/pkg/api"
 	"github.com/Vasilinateg/go-final-todo/pkg/db"
 )
 
@@ -23,6 +24,8 @@ func main() {
 		log.Fatal("Ошибка инициализации БД:", err)
 	}
 	defer db.Close()
+
+	api.Init()
 
 	webDir := "./web"
 
