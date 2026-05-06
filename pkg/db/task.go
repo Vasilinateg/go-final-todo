@@ -1,5 +1,7 @@
 package db
 
+import "fmt"
+
 type Task struct {
 	ID      string `json:"id"`
 	Date    string `json:"date"`
@@ -31,9 +33,36 @@ func Tasks(limit int) ([]Task, error) {
 		return nil, err
 	}
 
-	// Возвращаем пустой слайс вместо nil, чтобы JSON был {"tasks":[]}
 	if tasks == nil {
 		return []Task{}, nil
 	}
 	return tasks, nil
+}
+
+// GetTask возвращает задачу по ID
+func GetTask(id string) (*Task, error) {
+	query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE id = ?`
+	var t Task
+	err := DB.QueryRow(query, id).Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
+// UpdateTask обновляет существующую задачу
+func UpdateTask(task Task) error {
+	query := `UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?`
+	res, err := DB.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("задача с id %s не найдена", task.ID)
+	}
+	return nil
 }
