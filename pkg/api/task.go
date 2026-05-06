@@ -16,6 +16,8 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		getTaskHandler(w, r)
 	case http.MethodPut:
 		updateTaskHandler(w, r)
+	case http.MethodDelete:
+		deleteTaskHandler(w, r)
 	default:
 		writeJSON(w, map[string]string{"error": "Method not allowed"}, http.StatusMethodNotAllowed)
 	}
@@ -139,6 +141,22 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.UpdateTask(task); err != nil {
+		writeJSON(w, map[string]string{"error": err.Error()}, http.StatusNotFound)
+		return
+	}
+
+	writeJSON(w, map[string]interface{}{}, http.StatusOK)
+}
+
+// DELETE /api/task?id=123
+func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		writeJSON(w, map[string]string{"error": "Не указан идентификатор"}, http.StatusBadRequest)
+		return
+	}
+
+	if err := db.DeleteTask(id); err != nil {
 		writeJSON(w, map[string]string{"error": err.Error()}, http.StatusNotFound)
 		return
 	}
