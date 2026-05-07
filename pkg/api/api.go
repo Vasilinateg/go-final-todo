@@ -19,7 +19,9 @@ func Init() {
 func writeJSON(w http.ResponseWriter, data interface{}, status int) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, "Ошибка кодирования JSON", http.StatusInternalServerError)
+	}
 }
 
 // nextDateHandler обрабатывает GET-запросы /api/nextdate
@@ -57,5 +59,7 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Write([]byte(result))
+	if _, err := w.Write([]byte(result)); err != nil {
+		http.Error(w, "Ошибка записи ответа", http.StatusInternalServerError)
+	}
 }

@@ -9,17 +9,22 @@ import (
 
 var DB *sql.DB
 
+// Init инициализирует базу данных
 func Init(dbFile string) error {
+	// Проверяем, существует ли файл БД
 	_, err := os.Stat(dbFile)
 	needInit := err != nil
 
+	// Открываем БД
 	DB, err = sql.Open("sqlite", dbFile)
 	if err != nil {
 		return err
 	}
 
+	// Если файла не было, создаём таблицу и индекс
 	if needInit {
 		if err := createSchema(); err != nil {
+			DB.Close()
 			return err
 		}
 	}
@@ -27,6 +32,7 @@ func Init(dbFile string) error {
 	return nil
 }
 
+// createSchema создаёт таблицу и индекс
 func createSchema() error {
 	schema := `
 	CREATE TABLE IF NOT EXISTS scheduler (
@@ -44,23 +50,10 @@ func createSchema() error {
 	return err
 }
 
+// Close закрывает соединение с БД
 func Close() error {
 	if DB != nil {
 		return DB.Close()
 	}
 	return nil
-}
-
-// AddTask добавляет новую задачу в БД
-func AddTask(task Task) (int64, error) {
-	query := `INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)`
-	res, err := DB.Exec(query, task.Date, task.Title, task.Comment, task.Repeat)
-	if err != nil {
-		return 0, err
-	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
 }

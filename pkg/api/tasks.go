@@ -6,6 +6,8 @@ import (
 	"github.com/Vasilinateg/go-final-todo/pkg/db"
 )
 
+const tasksLimit = 50
+
 type tasksResponse struct {
 	Tasks []db.Task `json:"tasks"`
 }
@@ -16,8 +18,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Получаем задачи из БД (ограничиваем 50 записями)
-	tasks, err := db.Tasks(50)
+	tasks, err := db.Tasks(tasksLimit)
 	if err != nil {
 		writeJSON(w, map[string]string{"error": "Ошибка получения задач"}, http.StatusInternalServerError)
 		return

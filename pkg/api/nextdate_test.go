@@ -1,10 +1,10 @@
-package tests
+package api
 
 import (
 	"testing"
 	"time"
 
-	"github.com/Vasilinateg/go-final-todo/pkg/api"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNextDateDirect(t *testing.T) {
@@ -23,17 +23,11 @@ func TestNextDateDirect(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.repeat, func(t *testing.T) {
-			now, err := time.Parse(api.DateFormat, tt.nowStr)
-			if err != nil {
-				t.Fatal(err)
-			}
-			result, err := api.NextDate(now, tt.dateStr, tt.repeat)
-			if err != nil {
-				t.Errorf("Ошибка: %v", err)
-			}
-			if result != tt.expected {
-				t.Errorf("NextDate(%s, %s, %s) = %s, ожидается %s", tt.nowStr, tt.dateStr, tt.repeat, result, tt.expected)
-			}
+			now, err := time.Parse(DateFormat, tt.nowStr)
+			assert.NoError(t, err)
+			result, err := NextDate(now, tt.dateStr, tt.repeat)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
